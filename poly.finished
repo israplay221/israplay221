@@ -1,0 +1,227 @@
+import discord
+from discord.ext import commands
+import random
+import os
+import requests
+import json
+import aiohttp
+import webbrowser
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+bot = commands.Bot(command_prefix='$', intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f'We have logged in as {bot.user}')
+
+@bot.command()
+async def hello(ctx):
+    await ctx.send(f'Hola, soy {bot.user}!')
+
+@bot.command()
+async def heh(ctx, count_heh = 5):
+    await ctx.send("he" * count_heh)
+
+@bot.command()
+async def suma(ctx, n1:int, n2:int):
+    await ctx.send(f"La suma de {n1} con {n2} es {n1 + n2}")
+
+@bot.command()
+async def repeat(ctx, times: int, content='repeating...'):
+    """Repeats a message multiple times."""
+    for i in range(times):
+        await ctx.send(content)
+
+@bot.command()
+async def limpiar(ctx):
+    await ctx.channel.purge()
+    await ctx.send("Mensajes eliminados", delete_after = 3)
+
+@bot.command()
+async def meme(ctx):
+        with open('imagenes/memes/meme.png', 'rb') as f:
+        # ¡Vamos a almacenar el archivo de la biblioteca Discord convertido en esta variable!
+            picture = discord.File(f)
+        # A continuación, podemos enviar este archivo como parámetro.
+        await ctx.send(file=picture)
+
+@bot.command()
+async def meme1(ctx):
+        with open('imagenes/memes/meme1.png', 'rb') as f:
+        # ¡Vamos a almacenar el archivo de la biblioteca Discord convertido en esta variable!
+            picture = discord.File(f)
+        # A continuación, podemos enviar este archivo como parámetro.
+        await ctx.send(file=picture)
+
+@bot.command()
+async def meme2(ctx):
+        with open('imagenes/memes/meme2.png', 'rb') as f:
+        # ¡Vamos a almacenar el archivo de la biblioteca Discord convertido en esta variable!
+            picture = discord.File(f)
+        # A continuación, podemos enviar este archivo como parámetro.
+        await ctx.send(file=picture)
+
+@bot.command()
+async def memes(ctx):
+        imagenes = os.listdir('memes')
+        with open(f'imagenes/memes/{random.choice(memes)}', 'rb') as f:
+            picture = discord.File(f)
+        # A continuación, podemos enviar este archivo como parámetro.
+        await ctx.send(file=picture)
+
+def get_duck_image_url():    
+    url = 'https://random-d.uk/api/random'
+    res = requests.get(url)
+    data = res.json()
+    return data['url']
+
+
+@bot.command('duck')
+async def duck(ctx):
+    '''Una vez que llamamos al comando duck, 
+    el programa llama a la función get_duck_image_url'''
+    image_url = get_duck_image_url()
+    await ctx.send(image_url)
+
+@bot.command()
+async def poke(ctx,arg):
+    try:
+        pokemon = arg.split(" ",1)[0].lower()
+        result = requests.get("https://pokeapi.co/api/v2/pokemon/"+pokemon)
+        if result.text == "Not Found":
+            await ctx.send("Pokemon no encontrado")
+        else:
+            image_url = result.json()["sprites"]["front_default"]
+            print(image_url)
+            await ctx.send(image_url)
+    except Exception as e:
+        print("Error:", e)
+@poke.error
+async def error_type(ctx,error):
+    if isinstance(error,commands.errors.MissingRequiredArgument):
+        await ctx.send("Tienes que darme un pokemon")
+
+@bot.command('dog')
+async def dog(ctx):
+    async with aiohttp.ClientSession() as cd:
+        async with cd.get("https://dog.ceo/api/breeds/image/random") as r:
+            raw = await r.text()
+            dogspic = json.loads(raw)
+
+            embed = discord.Embed()
+
+            embed.set_image(url=dogspic['message'])
+
+            await ctx.send(embed=embed)
+
+@bot.command()
+async def contaminacion(ctx):
+    await ctx.send(f"""
+    Hola, soy un bot {bot.user}!
+    """)
+    #comentarios
+ 
+    await ctx.send("Quieres conocer de que trata la contaminación?")
+    # Esperar la respuesta del usuario
+    def check(message):
+        return message.author == ctx.author and message.channel == ctx.channel and message.content in ['si', 'no']
+    response = await bot.wait_for('message', check=check)
+    if response:
+        if response.content:
+            await ctx.send(""" 
+            La contaminacion afecta a los grandes ecosistemas naturales que tenemos, como las selvas y los bosques...
+            También hace que la temperatura en el planeta aumente, generando el calentamiendo global.
+            """)
+ 
+        else:
+            await ctx.send("Está bien, si alguna vez necesitas saber sobre otro tema, estaremos en contacto.")
+    else:
+        await ctx.send("Lo siento, no pude entender tu respuesta. Inténtalo de nuevo.")
+ 
+    await ctx.send("Quieres mas ejemplos sobre contaminación'si' o 'no'.")
+    def check1(message):
+        return message.author == ctx.author and message.channel == ctx.channel and message.content in ['si', 'no']
+    response1 = await bot.wait_for('message', check=check1)
+    if response1:
+        if response1.content == "si":
+            await ctx.send("""
+            El calentamiento global hace que los polos se descongelen, por lo tanto el nivel de los mares aumenta.
+            Provocando así la muerte de la fauna y la flora que habita en esas zonas.
+            """) 
+        else:
+            await ctx.send("Está bien, si alguna vez necesitas hablar sobre otro tema, estaremos en contacto.")
+    else:
+        await ctx.send("Lo siento, no pude entender tu respuesta. Inténtalo de nuevo.")
+    await ctx.send("Te gustaria que te envie una foto sobre un ejemplo de contaminación?")
+    def check2(message):
+        return message.author == ctx.author and message.channel == ctx.channel and message.content in ['si', 'no']
+    response2 = await bot.wait_for('message', check=check2)
+    if response2:
+        if response1.content == "si":
+            image_path = 'contaminación/conta1.jpeg'
+ 
+        # Verificar si el archivo existe antes de enviarlo
+        if os.path.exists(image_path):
+            with open(image_path, 'rb') as f:
+                picture = discord.File(f)
+                await ctx.send("Aquí tienes un ejemplo de contaminación:", file=picture)
+        else:
+            await ctx.send("Lo siento, no pude encontrar la imagen. Verifica que la ruta sea correcta.")
+    else:
+        await ctx.send("Lo siento, no pude entender tu respuesta. Inténtalo de nuevo.")
+    await ctx.send("¿Quieres encontrar una solución?'si' o 'no'.")
+    def check1(message):
+        return message.author == ctx.author and message.channel == ctx.channel and message.content in ['si', 'no']
+    response3 = await bot.wait_for('message', check=check1)
+    if response3:
+        if response3.content == "si":
+            await ctx.send("""
+            puedes ahorrar energia y no usar por mucho tiempo los dispositivos electrodomesticos
+            al ser usados, tambien se puedes utilizar energia renobable
+            """) 
+        else:
+            await ctx.send("Está bien, si alguna vez necesitas hablar sobre otro tema, estaremos en contacto.")
+    else:
+        await ctx.send("Lo siento, no pude entender tu respuesta. Inténtalo de nuevo.")
+
+
+@bot.command()
+async def csutilidad(ctx):
+    await ctx.send(f"""
+    Hola, soy {bot.user}!
+    """)
+    #comentarios
+ 
+    await ctx.send("¿Quieres conocer algunas utilidades de CS2?")
+    # Esperar la respuesta del usuario
+    def check(message):
+        return message.author == ctx.author and message.channel == ctx.channel and message.content in ['si', 'no']
+    response = await bot.wait_for('message', check=check)
+    if response:
+        if response.content:
+            await ctx.send(""" 
+            en Dust_2 en el spwan TT si te vas a la barandilla de la puerta del edificio de atras
+            al apuntar a la esquina de la casa y luego hacer jumpthrow va a humear xbox                
+            """)
+        else:
+            await ctx.send("Está bien, si alguna vez necesitas saber sobre utilidad, estaremos en contacto.")
+    else:
+        await ctx.send("Lo siento, no pude entender tu respuesta. Inténtalo de nuevo.")
+    await ctx.send("¿Quieres un ejemplo de lo que tienes que hacer?'si' o 'no'.")
+    def check1(message):
+        return message.author == ctx.author and message.channel == ctx.channel and message.content in ['si', 'no']
+    response1 = await bot.wait_for('message', check=check1)
+    if response1.content == "si":
+        image_path = 'imagenes/csutilidad/utilidad.png'
+ 
+        # Verificar si el archivo existe antes de enviarlo
+        if os.path.exists(image_path):
+            with open(image_path, 'rb') as f:
+                picture = discord.File(f)
+                await ctx.send("Despues de apuntar ahí tienes que saltar:", file=picture)
+        else:
+            await ctx.send("Lo siento, no pude encontrar la imagen. Verifica que la ruta sea correcta.")
+    else:
+        await ctx.send("Lo siento, no pude entender tu respuesta. Inténtalo de nuevo.")
